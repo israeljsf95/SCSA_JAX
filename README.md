@@ -18,7 +18,10 @@ https://github.com/empter/PYFEAST
 
 - [] benchmark this implementation on some non synthetic data. 
 - [] combine the feast sparse eigensolver with our implementation
-     to see if it improves (hopefully it will)
+     to see if it improves (hopefully it will) 
 
 If this ideas works properly, we will be able to increase the usability capabilities
 to more insteresting applications.
+
+important links to explore:
+https://github.com/empter/PYFEAST
