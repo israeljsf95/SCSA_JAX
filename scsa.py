@@ -186,7 +186,7 @@ def compute_scsa_1d(h:float , y:jnp.array, fs:float):
     else:
         return yscsa, neg_sch_evals, Nh, psinnorm
 
-def compute_cscsa_cost(y:jnp.array,  yscsa:jnp.array):
+def compute_cscsa_cost(y:jnp.array,  yscsa:jnp.array, mu = None):
 
     """
     Function that computes the C-SCSA cost function
@@ -198,7 +198,10 @@ def compute_cscsa_cost(y:jnp.array,  yscsa:jnp.array):
     """
 
     first_term = jnp.mean((y - yscsa)**2)
-    mu = 100*(y.max() / y.sum())
+    if mu is None:
+        mu = 100*(y.max() / y.sum())
+    else:
+        mu = mu
     ## Curvature penalty
     yscsa_first_diff = jnp.gradient(yscsa)
     yscsa_second_diff = jnp.gradient(yscsa_first_diff)
@@ -208,7 +211,7 @@ def compute_cscsa_cost(y:jnp.array,  yscsa:jnp.array):
 
     return first_term + second_term
 
-def compute_scsa_denoising(y: jnp.array, fs:float,  verbose:bool = True, hsearch_method:str = "else"):
+def compute_scsa_denoising(y: jnp.array, fs:float,  verbose:bool = True, hsearch_method:str = "else", mu = None):
 
     """
     Function that performs an optimization problem by searching for the best h(Semi Classical parameter)
@@ -237,12 +240,12 @@ def compute_scsa_denoising(y: jnp.array, fs:float,  verbose:bool = True, hsearch
 
         # yscsa, neg_sch_evals, Nh, psinnorm = compute_scsa_1d_jit(hh, n, y, fs, fsh)
         yscsa, neg_sch_evals, Nh, psinnorm = compute_scsa_1d(hh, y, fs)
-        cost_function.append(compute_cscsa_cost(y, yscsa))
+        cost_function.append(compute_cscsa_cost(y, yscsa, mu))
         if verbose:
             print(f"Cost Function (C-SCSA) iter {cont + 1}: h == {hh:.3f} || J[{cont+1}] == {cost_function[-1]:.5f}")
 
     hh_min = hh_list[np.argmin(cost_function)]
-    yscsa, kappas, Nh, psinNorm = compute_scsa_1d(hh_min, n, y, fs)
+    yscsa, kappas, Nh, psinNorm = compute_scsa_1d(hh_min, y, fs)
     return yscsa, kappas, Nh, psinNorm, cost_function
 
 
@@ -342,14 +345,17 @@ if __name__ == "__main__":
 
 
     dt = 1
+    #two different test cases
+    mu = 0
+    #mu = None
     print("Computing SCSA for the clean potential: ")
     yscsa_clean, kappas, Nh, psinNorm, cf_clean = compute_scsa_denoising(y, fs,
-                                                                         verbose = False)
+                                                                         verbose = False, mu = mu)
 
     print()
     print("Computing SCSA for the noised potential: ")
     yscsa_denoised, kappas_nn, Nh_nn, psinNorm_nn, cf_noise = compute_scsa_denoising(y_noise, fs,
-                                                                                     verbose = False)
+                                                                                     verbose = False, mu = mu)
 
 
 
