@@ -165,7 +165,8 @@ def compute_scsa_1d(h:float , y:jnp.array, fs:float):
         psinnorm: the normalized-squared eigenfunctions
     """
     n = len(y)
-    y = y - y.min()
+    y_min = y.min()
+    y = y - y_min
     gm = 0.5
     Lcl = (1/(2*(jnp.pi)**.5))*(gamma(gm+1)/gamma(gm + 1.5))
     D = construct_matrix(n, fs)
@@ -179,7 +180,7 @@ def compute_scsa_1d(h:float , y:jnp.array, fs:float):
     # aux_norm_psi = simps(neg_sch_evec ** 2, dx = fsh, axis = 0)
     # be careful here -- broadcast the integral of the squared eigenfunctions
     psinnorm = neg_sch_evec / (aux_norm_psi.reshape(1, -1) ** 0.5)
-    yscsa = ((h/Lcl)* jnp.sum((psinnorm**2) @ neg_sch_evals, 1)) ** (2 / (1 + 2*gm))
+    yscsa = ((h/Lcl)* jnp.sum((psinnorm**2) @ neg_sch_evals, 1)) ** (2 / (1 + 2*gm)) + y_min
 
     if y.shape != yscsa.shape:
         return yscsa.T, neg_sch_evals, Nh, psinnorm
